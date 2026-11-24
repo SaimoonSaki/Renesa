@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#000000"><meta name="apple-mobile-web-app-capable" content="yes">
+<title>Renesa</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;1,800&family=Cormorant+Garamond:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#000;--pn:#0d0d0d;--ln:rgba(109,0,26,.7);--mr:#6D001A;--mr2:#b3123a;--tx:#fff;--mut:rgba(255,255,255,.6)}
+body{background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,sans-serif;padding:calc(env(safe-area-inset-top) + 60px) 0 120px}
+h1,h3{font-family:'Cormorant Garamond',Georgia,serif;color:#fff}
+h3{font-size:1.4rem;margin-bottom:.5rem}
+.num{font-family:'Barlow Condensed',Impact,sans-serif;font-weight:800;font-style:italic;line-height:1}
+.card{background:var(--pn);border:1px solid var(--ln);border-radius:14px;padding:14px}
+.bk{border-left:4px solid var(--mr2)}
+.mut{color:var(--mut);font-size:.8rem}.m2{color:var(--mr2)}
+.inp{width:100%;background:#000;border:1px solid var(--ln);border-radius:10px;padding:10px;color:#fff;margin-bottom:8px}
+.btn{background:var(--mr);color:#fff;font-weight:700;border-radius:10px;padding:10px 14px}
+.btn.alt{background:transparent;border:1px solid var(--mr2)}
+.bar{height:8px;background:#1a1a1a;border-radius:9px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--mr),var(--mr2))}
+.tag{font-size:.65rem;border:1px solid var(--mr2);border-radius:6px;padding:0 5px;white-space:nowrap}
+.rk{font:800 italic 1.7rem 'Barlow Condensed',sans-serif;color:var(--mr2);width:1.6rem}
+.wk{display:flex;align-items:flex-end;gap:6px;height:80px}.wk div{flex:1;border-radius:4px 4px 0 0;background:#1a1a1a}.wk div.ok{background:linear-gradient(var(--mr2),var(--mr))}
+.rt{width:2rem;height:2rem;border:1px solid var(--ln);border-radius:8px;font-weight:700}.rt:active{background:var(--mr)}
+.cv{display:block;position:relative;aspect-ratio:3/4;border-radius:12px;overflow:hidden;border:1px solid var(--ln);background:linear-gradient(160deg,#6D001A,#000)}
+.cv img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.cvt{position:absolute;left:0;right:0;bottom:0;padding:10px;background:linear-gradient(transparent,rgba(0,0,0,.92))}
+#top{position:fixed;top:0;left:0;right:0;z-index:20;align-items:center;gap:12px;background:#000;border-bottom:1px solid var(--ln);padding:calc(env(safe-area-inset-top) + 8px) 14px 8px}
+#dr{position:fixed;top:0;bottom:0;left:0;width:78%;max-width:300px;background:var(--pn);border-right:1px solid var(--ln);z-index:40;transform:translateX(-105%);transition:transform .2s;padding:calc(env(safe-area-inset-top) + 16px) 12px;overflow:auto}
+#dr.on{transform:none}#ov{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:30;display:none}#ov.on{display:block}
+#dr .it{display:block;width:100%;text-align:left;padding:13px 10px;border-radius:10px;font-size:1.05rem}#dr .it.on{background:var(--mr)}
+#toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 66px);transform:translateX(-50%);background:#fff;color:#000;padding:8px 14px;border-radius:10px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%;text-align:center;z-index:50}
+</style></head>
+<body>
+<div id="top" style="display:none"><button onclick="menu(1)" style="font-size:1.7rem;line-height:1">☰</button><h1 class="text-2xl">Renesa</h1></div>
+<div id="ov" onclick="menu(0)"></div><div id="dr"></div>
+<div id="app" class="max-w-xl mx-auto p-4"></div><div id="toast"></div>
+<script>
+// ====== PASTE YOUR SUPABASE DETAILS HERE (keep the quotes) ======
+const SUPABASE_URL = 'https://nvzoukdygkjefpejpckv.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_VI_mUzJdxAa8qxAipm47Xg_XSBhfsX2'; // the Publishable key (or legacy anon key)
+// =================================================================
+// ====== RENESA PUBLICATIONS: the monthly issues shelf in the Library ======
+// To add an issue, copy one line and change it. Newest first. Keep the commas and quotes.
+//  title: the issue name (if it has an apostrophe, wrap it in "double quotes")
+//  month: shown above the title
+//  cover: your cover image, e.g. 'covers/nov-2026.jpg' (put the image in a folder named "covers"
+//         next to this file) or a full image web address. Leave '' for a plain maroon cover.
+//  link:  your Mega or Google Drive share link. Leave '' to show "Coming soon".
+const ISSUES=[
+  {title:'Issue 01', month:'November 2026', cover:'', link:''},
+];
+// ==========================================================================
+const TITLES=['Initiate','Wayfarer','Chronicler','Orator','Vanguard','Polymath','Altruist','Author','Luminary','Sovereign'];
+const MI={first_blood:'🩸','10k_club':'🏃',centurion:'💯',half_marathoner:'🏅',first_ink:'🖋️',dead_poet:'🎭',silver_tongue:'🥈',published_author:'📚',patron:'🤲',unbroken:'⛓️',founding_four:'🏛️'};
+const ic=c=>MIC[c]||MI[c]||'🏅';
+const KN={report:'Report',speech:'Speech',book:'Anthology'},SEC=[['press','Renesa'],['report','Reports'],['book','Anthologies'],['speech','Speeches']];
+const $=s=>document.querySelector(s),p2=n=>String(n).padStart(2,'0');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const need=L=>(S.lvl_a??26)*(L-1)**2+(S.lvl_b??120)*(L-1), lvl=x=>{let L=1;while(L<100&&x>=need(L+1))L++;return L}, rank=L=>L>=100?'Renessus':TITLES[Math.floor(L/10)];
+const fmt=n=>Math.round(n).toLocaleString();
+const today=()=>new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
+const hms=s=>{const h=Math.floor(s/3600),m=Math.floor(s%3600/60);return(h?h+':'+p2(m):m)+':'+p2(s%60)};
+const pace=(km,s)=>{if(!(km>0&&s>0))return'-';const p=Math.round(s/km);return Math.floor(p/60)+':'+p2(p%60)+'/km'};
+const hav=(a,b)=>{const r=Math.PI/180,x=Math.sin((b[0]-a[0])*r/2)**2+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin((b[1]-a[1])*r/2)**2;return 12742*Math.asin(Math.sqrt(x))};
+const mon=d=>{const x=new Date(d+'T00:00:00');x.setDate(x.getDate()-(x.getDay()+6)%7);return x.getTime()};
+const ld=t=>{const d=new Date(t);return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
+const fdt=t=>new Date(t).toLocaleString([],{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+const cdf=ms=>{const s=Math.floor(ms/1000);return`${Math.floor(s/86400)}d ${p2(Math.floor(s%86400/3600))}h ${p2(Math.floor(s%3600/60))}m ${p2(s%60)}s`};
+function tickCd(){document.querySelectorAll('[data-cd]').forEach(e=>{const ms=new Date(e.dataset.cd)-Date.now();e.textContent=ms<=0?'Happening now':cdf(ms)})}
+setInterval(tickCd,1000);
+const QK='renesa_q',CK='renesa_cur';
+const ls=(k,v)=>{try{if(v===undefined)return JSON.parse(localStorage.getItem(k));if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,JSON.stringify(v))}catch(e){return null}};
+const Q=()=>ls(QK)||[],pushQ=r=>ls(QK,[...Q(),r]);
+let sb,me,tab='home',lib='press',viewId=null,PR=null,syn=false,warned=false,SR=[],S={},B=[],T={mand:0,ext:0},subs=[],MD=[],MN={},MIC={},AC=[],CL=[],EV=[],G={on:false,paused:false,km:0,sec:0,last:null,lt:0,t0:0,pm:0,ps:0};
+function toast(m){const t=$('#toast');t.textContent=m;t.style.opacity=1;setTimeout(()=>t.style.opacity=0,3200)}
+async function run(p){const{data,error}=await p;if(error){toast(/schema cache/i.test(error.message)?'Database update missing. Run renesa-update3.sql in Supabase, then reload.':error.message);return null}return data??true}
+const menu=o=>{$('#dr').classList.toggle('on',!!o);$('#ov').classList.toggle('on',!!o)};
+
+if(SUPABASE_URL.startsWith('PASTE')){document.body.innerHTML='<p style="padding:24px">Open index.html in a text editor and paste your Supabase URL and key at the top of the script.</p>'}
+else{sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);sb.auth.onAuthStateChange((ev,s)=>{if(ev==='TOKEN_REFRESHED')return;setTimeout(()=>boot(s),0)})}
+addEventListener('online',()=>syncQ());
+
+async function boot(s){
+ if(!s){me=null;viewId=null;$('#top').style.display='none';menu(0);$('#app').innerHTML=vAuth();return}
+ if(me&&me.id===s.user.id)return;
+ me=await run(sb.from('profiles').select('*').eq('id',s.user.id).single());
+ if(me){await load();render();syncQ();if(ls('renesa_on'))trkStart(true)}}
+async function load(){
+ const r=await Promise.all([sb.from('settings').select('*').order('key'),sb.rpc('leaderboard'),sb.rpc('treasury'),sb.from('submissions').select('*').order('created_at',{ascending:false}),sb.from('medals').select('*'),
+  sb.from('activities').select('*').eq('user_id',me.id).order('logged_on',{ascending:false}).order('id',{ascending:false}).limit(100),
+  sb.from('claims').select('*').order('created_at',{ascending:false}).limit(100),
+  sb.from('events').select('*').order('starts_at'),sb.rpc('member_profile',{uid:viewId||me.id})]);
+ r.forEach(x=>{if(x.error){if(/schema cache/i.test(x.error.message)){if(!warned){warned=true;toast('Database update missing. Run renesa-update3.sql in Supabase, then reload.')}}else toast(x.error.message)}});
+ SR=r[0].data||[];S={};SR.forEach(x=>S[x.key]=+x.value);
+ B=r[1].data||[];T=(r[2].data||[])[0]||T;subs=r[3].data||[];MD=r[4].data||[];MN={};MD.forEach(x=>{MN[x.code]=x.name;MIC[x.code]=x.icon});
+ AC=r[5].data||[];CL=r[6].data||[];EV=r[7].data||[];PR=r[8].data||PR;const nmOf=id=>(B.find(b=>b.id===id)||{}).name;subs.forEach(s=>s.profiles={name:nmOf(s.user_id)});CL.forEach(c=>c.profiles={name:nmOf(c.user_id)})}
+async function refresh(){await load();render()}
+function go(t){menu(0);if(t==='me')return openP(me.id);tab=t;render();scrollTo(0,0)}
+async function openP(id){menu(0);viewId=id;tab='me';PR=await run(sb.rpc('member_profile',{uid:id}));render();scrollTo(0,0)}
+function render(){
+ const L3=[['home','🏠','Home'],['board','🏆','Leaderboard'],['cal','📅','Calendar'],['run','🏃','Track'],['lib','📚','Library'],['me','👤','My profile']];if(me.role==='host')L3.push(['host','⚙️','Host Sanctum']);
+ const m=B.find(b=>b.id===me.id)||{xp:0},L=lvl(+m.xp);
+ $('#top').style.display='flex';
+ $('#dr').innerHTML=`<div class="num" style="font-size:2rem">${esc(me.name)}</div><div class="mut mb-4">Lv ${L} ${rank(L)}</div>`+L3.map(t=>`<button class="it ${tab===t[0]?'on':''}" onclick="go('${t[0]}')">${t[1]} ${t[2]}</button>`).join('')+`<button class="it mut" onclick="sb.auth.signOut()">Log out</button>`;
+ $('#app').innerHTML=({home:vHome,board:vBoard,cal:vCal,run:vRun,lib:vLib,me:vProf,host:vHost}[tab])();tickCd();gShow()}
+
+const vAuth=()=>`<h1 class="text-4xl text-center mt-10">Renesa</h1><p class="mut text-center mb-6">A brotherhood of poets, runners and speakers.</p><div class="card"><input id="nm" class="inp" placeholder="Your name (sign up only)"><input id="em" type="email" class="inp" placeholder="Email"><input id="pw" type="password" class="inp" placeholder="Password (6+ characters)"><div class="flex gap-2"><button class="btn flex-1" onclick="doAuth(false)">Log in</button><button class="btn alt flex-1" onclick="doAuth(true)">Sign up</button></div></div>`;
+async function doAuth(up){const email=$('#em').value.trim(),password=$('#pw').value;
+ const r=up?await sb.auth.signUp({email,password,options:{data:{name:$('#nm').value.trim()||email.split('@')[0]}}}):await sb.auth.signInWithPassword({email,password});
+ if(r.error)toast(r.error.message);else if(up&&!r.data.session)toast('Confirm your email first, or turn off email confirmation in Supabase.')}
+
+function weeks(){const k=new Date(today()+'T00:00:00');k.setDate(k.getDate()-(k.getDay()+6)%7);const o=[];for(let i=7;i>=0;i--){const d=new Date(k);d.setDate(d.getDate()-7*i);o.push({k:d.getTime(),km:0,n:0})}AC.forEach(a=>{const w=o.find(v=>v.k===mon(a.logged_on));if(w){w.km+=+a.km;w.n++}});return o}
+function row(m,i){const x=+m.xp,L=lvl(x),a=need(L),b=need(Math.min(L+1,100)),pc=L>=100?100:Math.round((x-a)/(b-a)*100);
+ return `<div class="card mb-3" style="cursor:pointer" onclick="openP('${m.id}')"><div class="flex items-center gap-3"><div class="rk">${i+1}</div><div class="flex-1 min-w-0"><div class="font-semibold truncate">${esc(m.name)}${m.extra_donor?' <span class="tag">Patron</span>':''}${m.role==='host'?' <span class="tag">Host</span>':''}</div><div class="mut">Lv ${L} ${rank(L)}, ${(+m.km).toFixed(1)} km total</div></div><div class="num" style="font-size:1.6rem">🔥 ${m.streak}</div></div><div class="bar mt-3"><i style="width:${pc}%"></i></div><div class="mut mt-1">${fmt(x)} XP</div><div class="mt-2 flex flex-wrap gap-1">${(m.medals||[]).map(c=>`<span title="${esc(MN[c]||c)}">${ic(c)}</span>`).join('')}</div></div>`}
+const vBoard=()=>`<h3>Leaderboard</h3><p class="mut mb-3">Tap a member to see their profile.</p>`+B.map(row).join('');
+function vHome(){const W=weeks(),cur=W[7],goal=S.streak_min_km??6,ses=S.streak_min_sessions??3,m=B.find(b=>b.id===me.id)||{xp:0,streak:0},x=+m.xp,L=lvl(x),a=need(L),b=need(Math.min(L+1,100)),pc=L>=100?100:Math.round((x-a)/(b-a)*100),C=2*Math.PI*54,mx=Math.max(goal,...W.map(w=>w.km)),p=(S.charity_pct??70)/100,tm=+T.mand,te=+T.ext,ne=EV.find(e=>new Date(e.starts_at)>Date.now()),ws=W[7].k,sl=EV.filter(e=>e.kind==='session'&&new Date(e.starts_at)>=ws&&new Date(e.starts_at)<ws+6048e5),sd=sl.filter(e=>AC.some(a=>a.logged_on===ld(e.starts_at))).length;
+ return (ne?`<div class="card mb-3" style="border-color:var(--mr2);background:linear-gradient(135deg,#2a000b,#000)"><div class="mut">Next gathering</div><div class="num" style="font-size:2.3rem">${esc(ne.title)}</div><div class="mut mb-3">${fdt(ne.starts_at)}${ne.place?', '+esc(ne.place):''}</div><div class="num" style="font-size:2.5rem" data-cd="${ne.starts_at}"></div></div>`:'<div class="card mb-3 mut">No gathering scheduled yet.</div>')
+ +`<div class="card mb-3"><div class="flex items-center gap-4"><svg width="128" height="128" viewBox="0 0 130 130"><defs><linearGradient id="gr"><stop offset="0" stop-color="#6D001A"/><stop offset="1" stop-color="#d1204a"/></linearGradient></defs><circle cx="65" cy="65" r="54" fill="none" stroke="#1a1a1a" stroke-width="12"/><circle cx="65" cy="65" r="54" fill="none" stroke="url(#gr)" stroke-width="12" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-Math.min(cur.km/goal,1))}" transform="rotate(-90 65 65)"/><text x="65" y="72" text-anchor="middle" class="num" fill="#fff" font-size="40">${cur.km.toFixed(1)}</text><text x="65" y="92" text-anchor="middle" fill="#999" font-size="11">of ${goal} km</text></svg><div><div class="num" style="font-size:2.8rem">🔥 ${m.streak}</div><div class="mut">week streak</div><div class="mut mt-1">${sl.length?sd+' of '+sl.length+' sessions this week':'No sessions scheduled this week'}</div></div></div><div class="num mt-3" style="font-size:1.7rem">Lv ${L} ${rank(L)}</div><div class="bar mt-1"><i style="width:${pc}%"></i></div><div class="mut mt-1">${fmt(x)} XP${L<100?', '+fmt(b-x)+' to Lv '+(L+1):''}</div></div>${sl.length?`<div class="card mb-3"><div class="mut mb-2">This week's sessions</div>${sl.map(e=>{const dn=AC.some(a=>a.logged_on===ld(e.starts_at));return `<div class="flex justify-between py-1"><span>${ld(e.starts_at)===today()?'Today':new Date(e.starts_at).toLocaleDateString([],{weekday:'short'})} ${new Date(e.starts_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}, ${esc(e.title)}</span><span>${dn?'✅':'⬜'}</span></div>`}).join('')}</div>`:''}<div class="card mb-3"><div class="mut mb-2">Your last 8 weeks (maroon means the streak held)</div><div class="wk">${W.map(w=>`<div class="${w.km>=goal||w.n>=ses?'ok':''}" style="height:${Math.max(5,Math.round(w.km/mx*100))}%"></div>`).join('')}</div></div><div class="grid grid-cols-2 gap-3"><div class="card"><div class="mut">Charity</div><div class="num" style="font-size:2rem">${fmt(tm*p+te)} BDT</div></div><div class="card"><div class="mut">Society Fund</div><div class="num" style="font-size:2rem">${fmt(tm*(1-p))} BDT</div></div></div>`}
+
+function vCal(){const now=Date.now(),up=EV.filter(e=>new Date(e.starts_at)>=now-36e5),past=EV.filter(e=>new Date(e.starts_at)<now-36e5).reverse();
+ const card=(e,old)=>{const d=new Date(e.starts_at);return `<div class="card bk mb-3 flex gap-3" style="${old?'opacity:.5':''}"><div class="text-center" style="min-width:3.4rem"><div class="num" style="font-size:2.4rem">${d.getDate()}</div><div class="mut">${d.toLocaleString([],{month:'short'})}</div></div><div class="flex-1 min-w-0"><div class="font-semibold">${esc(e.title)}${e.kind==='session'?' <span class="tag">Run session</span>':''}</div><div class="mut">${d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}${e.place?', '+esc(e.place):''}</div>${e.details?`<p class="mut mt-1">${esc(e.details)}</p>`:''}${old?'':`<div class="m2 mt-1 font-semibold" data-cd="${e.starts_at}"></div>`}</div>${me.role==='host'?`<button class="mut" onclick="delEv(${e.id})">Delete</button>`:''}</div>`};
+ return `<h3>Calendar</h3>${up.map(e=>card(e)).join('')||'<p class="mut mb-3">Nothing scheduled yet.</p>'}${past.length?'<h3 class="mt-4">Past</h3>'+past.map(e=>card(e,1)).join(''):''}`}
+
+// ===== Movement engine: the native background plugin and the browser GPS both feed onLoc() =====
+const ST='renesa_st',nat=()=>!!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform());
+let E=ls(ST)||{p:null,b:null,done:[]},W_=null;
+const sv=()=>ls(ST,E);
+function closeB(){const b=E.b;E.b=null;if(!b)return;const v=b.km/(b.sec/3600);
+ if(b.km>=(S.min_session_km??1)&&b.sec>=(S.min_session_min??10)*60&&v>=2&&v<=(S.speed_max??25))E.done.push({t0:new Date(b.t0).toISOString(),day:ld(b.t0),km:+b.km.toFixed(2),sec:Math.round(b.sec),steps:Math.round(b.km*1000/(v<7?.75:1))})}
+function onLoc(la,lo,ac,t){if(ac>30)return;const q=[la,lo,t],p=E.p;E.p=q;
+ if(p){const d=hav(p,q),dt=(t-p[2])/1000,v=dt>0?d/dt*3600:0;
+  if(E.b&&t-E.b.l>3e5)closeB();
+  if(v>=1.5&&v<=(S.speed_max??25)&&d>=.005&&dt<=120){if(!E.b)E.b={t0:p[2],l:t,km:0,sec:0};E.b.km+=d;E.b.sec+=dt;E.b.l=t}}
+ ckNight();sv();gShow()}
+function ckNight(){if(E.b&&Date.now()-E.b.l>3e5)closeB();if(E.done.length&&(new Date().getHours()>=22||E.done[0].day!==today()))flush()}
+function flush(force){if(force)closeB();E.done.forEach(pushQ);E.done=[];sv();syncQ()}
+setInterval(ckNight,3e5);
+function gShow(){const e=$('#gk');if(!e)return;const td=AC.filter(a=>a.logged_on===today()&&a.source!=='manual').reduce((s,a)=>s+ +a.km,0);e.textContent=(td+Q().reduce((s,a)=>s+a.km,0)+E.done.reduce((s,a)=>s+a.km,0)+(E.b?E.b.km:0)).toFixed(2)}
+async function trkStart(quiet){if(W_)return;
+ try{if(nat()){const BG=Capacitor.registerPlugin('BackgroundGeolocation');
+   const id=await BG.addWatcher({backgroundTitle:'Renesa is tracking your movement',backgroundMessage:'Tap to open Renesa',requestPermissions:true,stale:false,distanceFilter:10},(l,e)=>{if(e){toast(e.code==='NOT_AUTHORIZED'?'Allow location for Renesa in phone settings':e.message);return}onLoc(l.latitude,l.longitude,l.accuracy,l.time)});W_={id,bg:BG}}
+  else{if(!navigator.geolocation)return toast('GPS is not available here');W_={id:navigator.geolocation.watchPosition(p=>onLoc(p.coords.latitude,p.coords.longitude,p.coords.accuracy,p.timestamp),e=>toast('GPS: '+e.message),{enableHighAccuracy:true,maximumAge:0})}}
+  ls('renesa_on',1)}catch(e){toast(String(e.message||e))}
+ if(!quiet||tab==='run')render()}
+async function trkStop(){flush(1);if(W_){if(W_.bg)await W_.bg.removeWatcher({id:W_.id});else navigator.geolocation.clearWatch(W_.id);W_=null}ls('renesa_on',null);E.p=null;sv();render()}
+async function syncQ(){if(syn||!sb||!me)return;const q=Q();if(!q.length)return;syn=true;let ok=false;
+ try{const{error}=await sb.rpc('log_sessions',{items:q});if(!error){ls(QK,[]);ok=true}else if(!/fetch|network|load failed/i.test(error.message)){ls(QK,[]);toast(error.message)}}finally{syn=false}
+ if(ok){toast('Workouts logged. XP added.');await refresh()}}
+function pv(){const o=$('#pv');if(!o)return;const k=+$('#ck').value,m=+$('#cm2').value;
+ if(!(k>0&&m>0)){o.textContent='Enter distance and minutes to see your XP.';return}
+ const sp=k/(m/60);
+ if(sp>(S.speed_max??25)){o.textContent=sp.toFixed(1)+' km/h is too fast to log.';return}
+ const base=Math.round(k*Math.pow(Math.min(sp,S.speed_cap??22),1.3)*(S.speed_const??2.5)),mm=B.find(b=>b.id===me.id)||{streak:0},c=weeks()[7],mn=S.streak_min_sessions??3,gk=S.streak_min_km??6,
+  st=mm.streak+((c.n>=mn||c.km>=gk)?0:(c.n+1>=mn||c.km+k>=gk)?1:0),mu=st>=12?S.mult_w12:st>=5?S.mult_w5:st>=3?S.mult_w3:S.mult_w1,mx=S.manual_mult??.5;
+ o.innerHTML=`Speed <b>${sp.toFixed(1)} km/h</b>. You earn <b>${Math.round(base*mu*mx)} XP</b> (streak x${mu}, manual logs earn ${Math.round(mx*100)}%).`}
+const logManual=()=>{const k=+$('#ck').value,m=+$('#cm2').value;if(!(k>0&&m>0))return toast('Enter distance and minutes');done(sb.rpc('log_manual',{dist:k,mins:m,d:$('#cd').value,lnk:$('#cl').value||null,nts:$('#cn').value||null}),'Logged. XP added.')};
+function vRun(){const on=!!ls('renesa_on'),n=E.done.length+(E.b?1:0),q=Q().length;
+ return `<div class="card mb-3 text-center"><div class="mut">${on?'Tracking in the background':'Tracking is off'}</div><div id="gk" class="num" style="font-size:5.5rem">0.00</div><div class="mut mb-3">km today, ${n} workout${n===1?'':'s'} waiting to be logged</div><button class="btn w-full" onclick="${on?'trkStop()':'trkStart()'}">${on?'Stop tracking':'Start tracking'}</button><button class="btn alt w-full mt-2" onclick="flush(1)">Log my movement now</button>${q?`<div class="mut mt-2">${q} waiting for internet</div>`:''}<p class="mut mt-3">${nat()?'Runs in the background with the screen off and logs itself every night. Allow location and notifications, and set battery to Unrestricted. A workout is 1 km or more over at least 10 minutes.':'For background tracking, install the Renesa Android app. In a browser, tracking only works while this page is open.'}</p></div><div class="card"><h3>Log from another app</h3><p class="mut mb-2">Strava, Mi Fitness or Google Fit entries earn ${Math.round((S.manual_mult??.5)*100)}% of the XP.</p><input id="ck" type="number" step="0.01" min="0" class="inp" placeholder="Distance in km" oninput="pv()"><input id="cm2" type="number" min="0" class="inp" placeholder="Duration in minutes" oninput="pv()"><input id="cd" type="date" class="inp" value="${today()}"><input id="cl" class="inp" placeholder="Strava link (optional)"><input id="cn" class="inp" placeholder="Notes (optional)"><div id="pv" class="mt-1 mb-3">Enter distance and minutes to see your XP.</div><button class="btn alt w-full" onclick="logManual()">Log workout</button></div>`}
+
+function subCard(s){const own=s.user_id===me.id,sp=s.kind==='speech',av=s.avg_score;
+ return `<div class="card bk mb-3"><div class="flex justify-between"><div class="mut">${KN[s.kind]}, ${new Date(s.created_at).toLocaleDateString()}</div>${av!=null?`<div class="tag">★ ${(+av).toFixed(1)}</div>`:''}</div><div class="text-xl" style="font-family:'Cormorant Garamond',serif;font-weight:700">${esc(s.title)}</div><div class="mut">by <a class="m2 underline" style="cursor:pointer" onclick="openP('${s.user_id}')">${esc(s.profiles?.name)}</a></div>${!sp&&s.link&&/^https?:/.test(s.link)?`<a class="m2 underline" href="${esc(s.link)}" target="_blank" rel="noopener">Open</a>`:''}${s.notes?`<p class="mut">${esc(s.notes)}</p>`:''}${own?'<div class="mut mt-2">Your own work. Others rate it anonymously.</div>':`<div class="mut mt-2">Rate 1 to 10 (anonymous, you can change it)</div><div class="flex flex-wrap gap-1 mt-1">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button class="rt" onclick="vote(${s.id},${n})">${n}</button>`).join('')}</div>`}</div>`}
+const LT=()=>`<div class="flex gap-1 mb-4">${SEC.map(x=>`<button class="btn ${lib===x[0]?'':'alt'} flex-1" style="padding:10px 0;font-size:.74rem" onclick="lib='${x[0]}';render()">${x[1]}</button>`).join('')}</div>`;
+const shelf=()=>`<h3>Renesa Publications</h3><p class="mut mb-3">Our writing, month by month. Tap a cover to read.</p><div class="grid grid-cols-2 gap-3">${ISSUES.map(i=>{const ok=/^https?:/.test(i.link||''),a=ok?`<a href="${esc(i.link)}" target="_blank" rel="noopener" class="cv">`:'<div class="cv">';return a+`<div class="num" style="position:absolute;top:16%;left:0;right:0;text-align:center;font-size:5.5rem;opacity:.22">R</div>${i.cover?`<img src="${esc(i.cover)}" alt="" onerror="this.remove()">`:''}<div class="cvt"><div class="mut">${esc(i.month)}</div><div style="font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.2rem;line-height:1.1">${esc(i.title)}</div>${ok?'':'<div class="mut">Coming soon</div>'}</div>`+(ok?'</a>':'</div>')}).join('')||'<p class="mut">No issues yet.</p>'}</div>`;
+function vLib(){if(lib==='press')return LT()+shelf();const sp=lib==='speech',L=subs.filter(s=>s.kind===lib);
+ return LT()+`<div class="card mb-4"><h3>Add to ${SEC.find(x=>x[0]===lib)[1]}</h3><input id="st" class="inp" placeholder="${sp?'Speech title, e.g. Why anxiety steals':'Title'}">${sp?'':'<input id="sl" class="inp" placeholder="Link to the file (Mega, Drive, etc.)">'}<input id="sn" class="inp" placeholder="Notes (optional)"><button class="btn w-full" onclick="submitWork()">Submit</button></div>${L.map(subCard).join('')||'<p class="mut">Nothing here yet. Be the first.</p>'}`}
+
+function vProf(){const id=viewId||me.id,own=id===me.id,m=B.find(b=>b.id===id)||{name:'',xp:0,km:0,streak:0,medals:[]},P=PR||{},x=+m.xp,L=lvl(x),a=need(L),b=need(Math.min(L+1,100)),pc=L>=100?100:Math.round((x-a)/(b-a)*100),
+  st=(n,l)=>`<div class="card text-center"><div class="num" style="font-size:2rem">${n}</div><div class="mut">${l}</div></div>`,r=v=>v==null?'-':(+v).toFixed(1),mine=subs.filter(s=>s.user_id===id),pend=CL.filter(c=>c.user_id===me.id&&c.status!=='approved');
+ return `${own?'':`<button class="mut mb-2" onclick="go('board')">Back to leaderboard</button>`}<div class="card mb-3"><div class="num" style="font-size:2.4rem">${esc(m.name)}</div><div class="mut mb-2">Lv ${L} ${rank(L)}${m.role==='host'?', host':''}</div><div class="bar"><i style="width:${pc}%"></i></div><div class="mut mt-1">${fmt(x)} XP${L<100?', '+fmt(b-x)+' to next level':''}</div></div><div class="grid grid-cols-2 gap-3 mb-4">${st((+m.km).toFixed(1),'total km')}${st('🔥 '+m.streak,'week streak')}${st(P.sessions??'-','workouts')}${st(P.steps!=null?fmt(P.steps):'-','steps')}${st(r(P.longest),'longest, km')}${st(P.top_speed?(+P.top_speed).toFixed(1):'-','top speed, km/h')}</div><h3>Writing</h3><div class="grid grid-cols-3 gap-2 mb-2">${st(P.reports??'-','reports')}${st(P.books??'-','anthologies')}${st(P.speeches??'-','speeches')}</div><div class="grid grid-cols-3 gap-2 mb-4">${st(r(P.r_hi),'highest')}${st(r(P.r_lo),'lowest')}${st(r(P.r_avg),'average')}</div>`
+ +`<h3>Medals</h3><div class="grid grid-cols-3 gap-2 mb-4">${MD.map(d=>`<div class="card text-center" style="opacity:${(m.medals||[]).includes(d.code)?1:.3};padding:8px"><div style="font-size:1.6rem">${ic(d.code)}</div><div class="font-semibold" style="font-size:.78rem">${esc(d.name)}</div><div class="mut" style="font-size:.68rem">${esc(d.descr)}</div></div>`).join('')}</div><h3>Library work</h3>${mine.map(s=>`<div class="card bk mb-2 flex justify-between"><div><div class="font-semibold">${esc(s.title)}</div><div class="mut">${KN[s.kind]}, ${new Date(s.created_at).toLocaleDateString()}</div></div>${s.avg_score!=null?`<div class="tag">★ ${(+s.avg_score).toFixed(1)}</div>`:''}</div>`).join('')||'<p class="mut mb-2">Nothing yet.</p>'}`
+ +(own?`<h3 class="mt-4">Workout history</h3>${pend.map(c=>`<div class="card mb-2 flex justify-between"><div><div class="font-semibold">${c.km} km ${c.kind}</div><div class="mut">${c.logged_on}</div></div><div class="tag">${c.status==='pending'?'Waiting for host':'Rejected'}</div></div>`).join('')}${AC.map(v=>`<div class="card mb-2 flex justify-between items-center"><div><div class="font-semibold">${(+v.km).toFixed(2)} km${v.xp!=null?', +'+v.xp+' XP':''}</div><div class="mut">${v.logged_on}${v.duration_s?', '+hms(v.duration_s)+', '+(v.speed_kmh?(+v.speed_kmh).toFixed(1):(v.km/(v.duration_s/3600)).toFixed(1))+' km/h':''}${v.steps?', '+fmt(v.steps)+' steps':''}</div></div><div class="tag">${v.source==='manual'?'Manual':v.source==='app'?'Renesa GPS':'Approved'}</div></div>`).join('')||'<p class="mut">No workouts yet. Start tracking on the Track tab.</p>'}`:'')}
+
+const mSel=id=>`<select id="${id}" class="inp">${B.map(m=>`<option value="${m.id}">${esc(m.name)}</option>`).join('')}</select>`;
+function vHost(){
+ const pend=CL.filter(c=>c.status==='pending'&&c.user_id!==me.id).map(c=>`<div class="card mb-2"><div>${esc(c.profiles?.name)}: ${c.km} km ${c.kind} on ${c.logged_on}</div>${c.link&&/^https?:/.test(c.link)?`<a class="m2 underline" href="${esc(c.link)}" target="_blank" rel="noopener">Proof link</a>`:''}${c.notes?`<p class="mut">${esc(c.notes)}</p>`:''}<div class="flex gap-2 mt-2"><button class="btn flex-1" onclick="review(${c.id},true)">Approve</button><button class="btn alt flex-1" onclick="review(${c.id},false)">Reject</button></div></div>`).join('');
+ return `<div class="card mb-4"><h3>Add to the calendar</h3><input id="et" class="inp" placeholder="Title"><select id="ek" class="inp"><option value="session">Run session (counts toward the weekly sessions)</option><option value="event">Gathering or other event</option></select><input id="ed" type="datetime-local" class="inp"><input id="ep" class="inp" placeholder="Place (optional)"><input id="eo" class="inp" placeholder="Details (optional)"><button class="btn w-full" onclick="addEv()">Add to calendar</button></div><div class="card mb-4"><h3>Adjust XP</h3>${mSel('au')}<input id="ax" type="number" min="1" class="inp" placeholder="XP amount"><input id="ar" class="inp" placeholder="Reason (optional)"><div class="flex gap-2"><button class="btn flex-1" onclick="hAdj(-1)">Deduct XP</button><button class="btn alt flex-1" onclick="hAdj(1)">Give XP</button></div></div><div class="card mb-4"><h3>Take back a medal</h3>${mSel('tu')}<select id="tm" class="inp">${MD.map(m=>`<option value="${m.code}">${esc(m.name)}</option>`).join('')}</select><button class="btn w-full" onclick="hRevoke()">Remove medal and its XP</button></div><div class="card mb-4"><h3>Create a new medal</h3><input id="nn" class="inp" placeholder="Medal name"><input id="ni" class="inp" placeholder="Emoji (optional, e.g. 🔥)"><input id="nx" type="number" class="inp" placeholder="XP it gives"><input id="nd" class="inp" placeholder="What it is for"><button class="btn w-full" onclick="hNewMedal()">Create medal</button></div><div class="card my-4"><h3>Log contribution</h3>${mSel('cu')}<input id="cm" type="month" class="inp" value="${today().slice(0,7)}"><input id="c1" type="number" class="inp" placeholder="Monthly contribution in BDT (${S.monthly_bdt??100})"><input id="c2" type="number" class="inp" placeholder="Extra donation in BDT (optional)"><button class="btn w-full" onclick="hContrib()">Save contribution</button></div><div class="card mb-4"><h3>Apply a deduction</h3>${mSel('pu')}<select id="pk" class="inp"><option value="inactive">Inactive week</option><option value="late_report">Late report</option><option value="skip_speech">Skipped speech</option></select><button class="btn w-full" onclick="hPen()">Apply</button></div><div class="card mb-4"><h3>Members and medals</h3>${mSel('ru')}<div class="flex gap-2 mb-2"><button class="btn flex-1" onclick="hRole('host')">Make host</button><button class="btn alt flex-1" onclick="hRole('member')">Make member</button></div><select id="mk" class="inp">${MD.map(m=>`<option value="${m.code}">${esc(m.name)}</option>`).join('')}</select><button class="btn w-full" onclick="hMedal()">Award medal</button></div><div class="card"><h3>XP and rules</h3>${SR.map(r=>`<label class="mut block mt-2">${esc(r.label||r.key)}</label><input class="inp cfg" data-k="${esc(r.key)}" type="number" step="any" value="${r.value}">`).join('')}<button class="btn w-full" onclick="hSave()">Save rules</button></div>`}
+
+const done=async(p,m)=>{if(await run(p)){toast(m);await refresh()}};
+const submitWork=()=>{const title=$('#st').value.trim();if(!title)return toast('Add a title');done(sb.from('submissions').insert({kind:lib,title,link:lib==='speech'?null:($('#sl').value||null),notes:$('#sn').value||null}),'Added. XP earned.')};
+const vote=(id,n)=>done(sb.rpc('cast_vote',{sid:id,sc:n}),'Rated '+n+', anonymously');
+const addEv=()=>{const t=$('#et').value.trim(),d=$('#ed').value;if(!t||!d)return toast('Add a title and a date');done(sb.from('events').insert({title:t,starts_at:new Date(d).toISOString(),kind:$('#ek').value,place:$('#ep').value||null,details:$('#eo').value||null}),'Added to the calendar')};
+const delEv=id=>confirm('Delete this event?')&&done(sb.from('events').delete().eq('id',id),'Event deleted');
+const review=(id,ok)=>done(sb.rpc('review_claim',{cid:id,ok}),ok?'Approved. XP added.':'Rejected');
+const hContrib=()=>done(sb.rpc('host_contribution',{uid:$('#cu').value,m:$('#cm').value+'-01',mand:+$('#c1').value||0,ext:+$('#c2').value||0}),'Contribution saved');
+const hPen=()=>done(sb.rpc('host_penalty',{uid:$('#pu').value,kind:$('#pk').value}),'Deduction applied');
+const hRole=r=>done(sb.rpc('host_set_role',{uid:$('#ru').value,r}),'Role updated');
+const hMedal=()=>done(sb.rpc('host_award',{uid:$('#ru').value,c:$('#mk').value}),'Medal awarded');
+const hAdj=g=>{const n=Math.round(+$('#ax').value);if(!(n>0))return toast('Enter an XP amount');done(sb.rpc('host_adjust_xp',{uid:$('#au').value,amt:g*n,why:$('#ar').value}),g<0?'XP deducted':'XP given')};
+const hRevoke=()=>confirm('Remove this medal and its XP?')&&done(sb.rpc('host_revoke',{uid:$('#tu').value,c:$('#tm').value}),'Medal removed');
+const hNewMedal=()=>{const nm=$('#nn').value.trim();if(!nm)return toast('Give the medal a name');done(sb.rpc('host_new_medal',{nm,xpv:Math.round(+$('#nx').value)||0,ds:$('#nd').value,ic:$('#ni').value.trim()}),'Medal created')};
+async function hSave(){for(const i of document.querySelectorAll('.cfg'))await run(sb.from('settings').update({value:+i.value}).eq('key',i.dataset.k));toast('Rules saved');await refresh()}
+</script></body></html>

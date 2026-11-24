@@ -1,0 +1,6 @@
+{
+  "appId": "com.renesa.app",
+  "appName": "Renesa",
+  "webDir": "www",
+  "server": { "androidScheme": "https" }
+}
